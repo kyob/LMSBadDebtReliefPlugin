@@ -1,0 +1,150 @@
+{extends file="layout.html"}
+{block name=title}::: LMS :{$layout.pagetitle|striphtml} :::{/block}
+{block name=module_content}
+
+<table class="lmsbox">
+    <thead>
+        <tr>
+            <th>{t}Bad debt relief{/t}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding:1em;">
+                {t}Check invoices from the year{/t}
+                <form method="get" name="formpbx" action="?m=baddebtrelief&year={$year}">
+                    <INPUT TYPE="HIDDEN" NAME="m" VALUE="baddebtrelief">
+                    <select size="1" name="year">
+                        {section name=y max=($currentYear-$firstYear+1) loop=$currentYear+1 step=-1}
+                        <option {if ($smarty.get.year eq $smarty.section.y.index)} selected {/if} value={$smarty.section.y.index}>{$smarty.section.y.index}</option>
+                        {/section}
+                    </select>
+                    <INPUT type="submit">
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{foreach from=$report item=r}
+{if $r|@count>0}
+<br>
+<table class="lmsbox lms-ui-background-cycle">
+    <COLGROUP>
+        <COl style="width: 40%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+        <COl style="width: 6%;">
+    </COLGROUP>
+    <thead>
+        <tr>
+            <th>{t}contractor{/t}</th>
+            <th>{t}tax ID{/t}</th>
+            <th>{t}invoice number{/t}</th>
+            <th>{t}date of creation{/t}</th>
+            <th>{t}date of payment{/t}</th>
+            <th>{t}days after the payment deadline{/t}</th>
+            <th>{t}net amount VAT rate{/t} 8%</th>
+            <th>{t}net amount VAT rate{/t} 23%</th>
+            <th>{t}VAT{/t} 8%</th>
+            <th>{t}VAT{/t} 23%</th>
+            <th>{t}gross amount{/t}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {assign var="sum_gross" value="0"}
+        {assign var="sum_net" value="0"}
+        {assign var="sum_vat" value="0"}
+        {assign var="sum_vat_8" value="0"}
+        {assign var="sum_vat_23" value="0"}
+        {assign var="sum_net_8" value="0"}
+        {assign var="sum_net_23" value="0"}
+        {foreach from=$r item=i}
+        <tr>
+            <td><a href="?m=customerinfo&id={$i.customerid}">{$i.contractor}</a><br>{$i.address}</td>
+            <td>{$i.tax_id}</td>
+            <td>{$i.invoice_number}</td>
+            <td>{$i.date_of_invoice}</td>
+            <td>{$i.date_of_payment}</td>
+            <td>{$i.days_after_payment_deadline}</td>
+            <td>{if ($i.vat_rate=='VAT 8%')}{$i.net}{/if}</td>
+            <td>{if ($i.vat_rate=='VAT 23%')}{$i.net}{/if}</td>
+            <td>{if ($i.vat_rate=='VAT 8%')}{$i.vat}{/if}</td>
+            <td>{if ($i.vat_rate=='VAT 23%')}{$i.vat}{/if}</td>
+            <td>{$i.gross}</td>
+        </tr>
+        {math assign="sum_gross" equation="x + y" x=$sum_gross y=$i.gross}
+        {math assign="sum_net" equation="x + y" x=$sum_net y=$i.net}
+        {math assign="sum_vat" equation="x + y" x=$sum_vat y=$i.vat}
+
+        {if ($i.vat_rate=='VAT 8%')}
+        {math assign="sum_net_8" equation="x + y" x=$sum_net_8 y=$i.net}
+        {math assign="sum_vat_8" equation="x + y" x=$sum_vat_8 y=$i.vat}
+        {/if}
+
+        {if ($i.vat_rate=='VAT 23%')}
+        {math assign="sum_net_23" equation="x + y" x=$sum_net_23 y=$i.net}
+        {math assign="sum_vat_23" equation="x + y" x=$sum_vat_23 y=$i.vat}
+        {/if}
+        {assign var="billing_date" value=strtotime($i.date_of_invoice)|date_format:"%B %Y"}
+        {/foreach}
+    </tbody>
+    <tfoot>
+        <tr class="summary" style="text-align:left;">
+            <th>
+                {t}{$billing_date}{/t}
+            </th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th>{t}summary{/t}</th>
+            <th>{$sum_net_8|money_format}</th>
+            <th>{$sum_net_23|money_format}</th>
+            <th>{$sum_vat_8|money_format}</th>
+            <th>{$sum_vat_23|money_format}</th>
+            <th>{$sum_gross|money_format}</th>
+        </tr>
+    </tfoot>
+    {/if}
+</table>
+{/foreach}
+
+<input type="button" value="{t}Support the author with a tip.{/t}" class="btn-donate" onclick="showOrHide('donate');">
+<div id="donate" class="bg-donate" style="display:none;">
+    <ul>
+        <li>{t}Bitcoin (BTC){/t}: bc1qvwahntcrwjtdp0ntfd0l6kdvdr9d9h6atp6qrr</li>
+        <li>{t}Ethereum (ETH){/t}: 0xEFCd4b066195652a885d916183ffFfeEEd931f40</li>
+    </ul>
+</div>
+
+<style>
+    .bg-donate {
+        color: black;
+        background: ghostwhite;
+        border: 1px solid gray;
+        padding: 1em;
+    }
+
+    input.btn-donate {
+        color: #333;
+        font-weight: bold;
+        background: #eee;
+        padding: 5px 10px 5px 10px;
+        border: 1px solid gray;
+        text-decoration: none;
+    }
+
+    input.btn-donate:hover {
+        background: #fff;
+        text-decoration: none;
+    }
+</style>
+{/block}
