@@ -27,7 +27,7 @@
 </table>
 
 {foreach from=$report item=r}
-{if $r|@count>0}
+{if !empty($r)}
 <br>
 <table class="lmsbox lms-ui-background-cycle">
     <COLGROUP>

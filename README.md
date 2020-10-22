@@ -1,6 +1,7 @@
 # BadDebtRelief plugin dla LMS
 
 ## Opis
+
 Ulga na złe długi jest to możliwość korekty podatku w przypadku braku zapłaty za fakturę przez wierzyciela. Do tej pory z takiego prawa mogli skorzystać przedsiębiorcy jako czynni podatnicy VAT. Brak zapłaty za fakturę sprzedaży w terminie 90 dni od terminu płatności rodzi obowiązek korekty po stronie nabywcy
 
 ## Instalacja 
