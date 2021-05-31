@@ -14,32 +14,23 @@ function badDebtRelief($year)
 
     for ($i = 1; $i <= 12; $i++) {
         $month = sprintf("%02d", $i);
-        $query = "SELECT d.id as docid,
-        cu.id as customerid,
-        d.name as contractor,
-        d.address as address,
-        d.ten AS tax_id,
-        from_unixtime(d.cdate, '%Y-%m-%d') AS date_of_invoice,
-        from_unixtime((d.cdate+(d.paytime*86400)), '%Y-%m-%d') AS date_of_payment,
-        round(((UNIX_TIMESTAMP()-(d.sdate+(d.paytime*86400)))/86400)) AS days_after_payment_deadline,
-        d.fullnumber AS invoice_number,
-        abs(round(ca.value-(ca.value*(t.value/100)),2)) AS net,
-        abs(round((ca.value*(t.value/100)),2)) AS vat,
-        t.label AS vat_rate,
-        abs(ca.value) AS gross
-        FROM documents d
-        LEFT JOIN customers cu ON d.customerid = cu.id
-        LEFT JOIN cash ca ON d.id = ca.docid
-        LEFT JOIN taxes t ON ca.taxid = t.id
-        WHERE cu.type=1
-        AND d.closed=0
-        AND cu.deleted=0
-        AND d.type=1
-        AND (((UNIX_TIMESTAMP()-(d.sdate+(d.paytime*86400)))/86400)>$overdue_in_days)
-        AND d.cdate
-        AND FROM_UNIXTIME(d.cdate, '%Y') = $year
-        AND FROM_UNIXTIME(d.cdate, '%m') = $month
-        ORDER BY t.label";
+        $query = "SELECT d.id AS docid, cu.id AS customerid, d.name AS contractor, d.address AS address, d.ten AS tax_id, 
+        to_timestamp(d.cdate)::date AS date_of_invoice, 
+        to_timestamp(d.cdate+(d.paytime*86400))::date AS date_of_payment, 
+       round(((extract(epoch FROM now())-(d.sdate+(d.paytime*86400)))/86400)) AS days_after_payment_deadline, 
+   d.fullnumber AS invoice_number, 
+   abs(round(ca.value-(ca.value*(t.value/100)),2)) AS net, 
+   abs(round((ca.value*(t.value/100)),2)) AS vat, t.label AS vat_rate, 
+   abs(ca.value) AS gross 
+   FROM documents d 
+   LEFT JOIN customers cu ON d.customerid = cu.id 
+   LEFT JOIN cash ca ON d.id = ca.docid 
+   LEFT JOIN taxes t ON ca.taxid = t.id 
+   WHERE cu.type=1 AND d.closed=0 AND cu.deleted=0 AND d.type=1 
+   AND ((((extract(epoch FROM now())-(d.sdate + d.paytime*86400)))/86400)>$overdue_in_days) 
+   AND extract('year' from to_timestamp(d.cdate)) = $year
+   AND extract('month' from to_timestamp(d.cdate)) = $month
+   ORDER BY t.label";
         $report[$i] = $db->GetAll($query);
     }
     return $report;
